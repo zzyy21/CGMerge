@@ -26,7 +26,7 @@ evimage -> *.pimg -> `*+pimg+n.tlg.png` & `*+pimg+layers.txt`
 
 The input files need to be placed in the same directory as the tool's executable file.
 
-### 执行合成
+### Merge CGs
 
 Double click to run CGMerge.exe (read cglist.csv by default)  
 or  
