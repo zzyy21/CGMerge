@@ -4,7 +4,9 @@ CGMerge是一个合成柚子社galgame CG的工具。
 将从csv文件中读取CG列表及合成规则并合成CG。  
 这个工具本身不具备解包的功能，需要搭配解包工具使用。
 
-Ciallo～(∠・ω< )⌒★
+## Ciallo～(∠・ω< )⌒★
+
+[English Version of README](/README.md)
 
 ## 目录
 
@@ -14,7 +16,7 @@ Ciallo～(∠・ω< )⌒★
 
 ## 如何使用
 
-[完整的解包合成流程](/example/profile.md)
+[完整的解包合成流程](/doc/full_flow.md)
 
 ### 安装ImageMagick工具
 

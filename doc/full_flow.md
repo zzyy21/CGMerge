@@ -4,6 +4,9 @@
 解包方法有很多，这里只说明其中一种（我最开始用的一种）。\
 这个工具也是基于这种方法原本的不足而编写的。
 
+[返回中文说明](/doc/README_zh-CN.md)
+[Back to README](/README.md)
+
 ### 需要的工具
 
 * [KrKrExtract](https://github.com/xmoeproject/KrkrExtract/releases) : xmoe的KiriKiri解包工具

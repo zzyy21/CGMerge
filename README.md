@@ -4,7 +4,7 @@ CGMerge is a tool to merge CG of YuzuSoft galgame.
 This tool will read the CG list and merge rules from the csv file and merge resources into CGs.  
 This tool does not have the function of extracting files from the game, and needs to be used with extracting tools.
 
-Ciallo～(∠・ω< )⌒★
+## Ciallo～(∠・ω< )⌒★
 
 CGMerge是一个合成柚子社galgame CG的工具。  
 将从csv文件中读取CG列表及合成规则并合成CG。  
@@ -13,7 +13,7 @@ CGMerge是一个合成柚子社galgame CG的工具。
 
 ## How to use
 
-[Full instruction of extract resources and merge CG (zh-CN only)](/example/profile.md)
+[Full instruction of extract resources and merge CG (zh-CN only)](/doc/full_flow.md)
 
 ### Install ImageMagick
 
