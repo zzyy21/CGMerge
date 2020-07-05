@@ -53,7 +53,7 @@ EXTRA_LIBRARY_PATH =
 # extra libraries
 # format: <library1_name> <library2_name>
 # example: EXTRA_LIBRARIES = foo bar
-EXTRA_LIBRARIES = 
+EXTRA_LIBRARIES = tlg2png png zlib
 
 # project path definition
 BUILD_PATH = build
@@ -73,7 +73,7 @@ OBJECTS = $(patsubst %.$(SOURCE_FILEEXT),$(OBJECT_PATH)/%.o, $(notdir $(SOURCES)
 # 3rdparty library auto import
 LIBRARY_PATH = 3rdparty/lib
 LIBRARY_INCLUDE_PATH = 3rdparty/include
-LIBRARIES = $(wildcard $(LIBRARY_PATH)/*)
+#LIBRARIES = $(wildcard $(LIBRARY_PATH)/*)
 
 
 ################ generate compile flags ################

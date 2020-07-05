@@ -4,7 +4,7 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-24 15:06:55
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-05 22:50:01
+ * Last Modify  : 2020-07-06 00:22:56
  * Description  : operation to single cg picture
  * Revision     : v1.0 - first version for generate Magick convert
  *                  command-lines
@@ -43,7 +43,7 @@ std::string CGPic::magickMergeScript() {
         commandLine += "-page ";
         commandLine += "+" + std::to_string(layers_[i].left());
         commandLine += "+" + std::to_string(layers_[i].top()) + " ";
-        commandLine += layers_[i].fileName() + " ";
+        commandLine += "\"" + layers_[i].fileName() + "\" ";
     }
 
     // Set Magick png compression level, maximum compression
