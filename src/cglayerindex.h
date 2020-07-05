@@ -1,12 +1,13 @@
 /* ****************************************************************
- * FilePath     : /include/cglayerindex.h
- * Project Name : 
+ * FilePath     : /src/cglayerindex.h
+ * Project Name : CGMerge
  * Author       : zzyy21
  * Create Time  : 2020-06-23 20:26:21
  * Modifed by   : zzyy21
- * Last Modify  : 2020-06-23 20:26:21
- * Description  : layer index readed from txt file
- * Revision     : 
+ * Last Modify  : 2020-07-05 20:30:18
+ * Description  : get layer index from file
+ * Revision     : v1.0 - Get layer info from txt file by expimg
+ *                v2.0 - Get layer info from json file by KrkrExtract
  * **************************************************************** */
 
 #ifndef CGLAYERINDEX_H_
@@ -30,6 +31,7 @@ class CGLayerIndex {
         int getValue(const std::string &line);
         void getPicId(const std::string &line, int* p_bgLayer, int* p_upLayer);
         int getInfoTxt();
+        int getInfoJson();
 
     public:
         CGLayerIndex();
