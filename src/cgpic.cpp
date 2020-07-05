@@ -4,9 +4,11 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-24 15:06:55
  * Modifed by   : zzyy21
- * Last Modify  : 2020-06-24 15:06:55
+ * Last Modify  : 2020-07-05 22:50:01
  * Description  : operation to single cg picture
- * Revision     : 
+ * Revision     : v1.0 - first version for generate Magick convert
+ *                  command-lines
+ *                v1.0(200705) - add png:include-chunk definition
  * **************************************************************** */
 
 #include "cglayer.h"
@@ -44,7 +46,23 @@ std::string CGPic::magickMergeScript() {
         commandLine += layers_[i].fileName() + " ";
     }
 
-    commandLine += "-quality 95 -mosaic CGOutput\\" + fileName_;
+    // Set Magick png compression level, maximum compression
+    // * For the MNG and PNG image formats, the quality value sets the zlib
+    // * compression level (quality / 10) and filter-type (quality % 10).
+    // * If filter-type is 5, adaptive filtering is used when quality is
+    // * greater than 50 and the image does not have a color map,
+    // * otherwise no filtering is used.
+    commandLine += "-quality 95 ";
+    // Define ancillary chunks in PNG. Avoid writing time information to cause
+    // different verification of merged image files.
+    // * Ancillary chunks to be excluded from or included in PNG output.
+    // * The value can be the name of a PNG chunk-type such as bKGD,
+    // * a comma-separated list of chunk-names (which can include the word date,
+    // * the word all, or the word none). Although PNG chunk-names are
+    // * case-dependent, you can use all lowercase names if you prefer.
+    commandLine += "-define png:include-chunk=none ";
+
+    commandLine += "-mosaic CGOutput\\" + fileName_;
 
     return commandLine;
 }
