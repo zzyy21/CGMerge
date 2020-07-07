@@ -4,7 +4,7 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-23 20:26:21
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-05 23:58:46
+ * Last Modify  : 2020-07-07 23:25:33
  * Description  : get layer index from file
  * Revision     : v1.0 - Get layer info from txt file by expimg
  *                v2.0 - Get layer info from json file by KrkrExtract
@@ -17,6 +17,13 @@
 
 #include <string>
 #include <vector>
+
+// CGLayerIndex
+// use std::vector<CGLayer> to store a set of layer information
+// use layerIndex_[26 * 26] to store the index of CGLayer
+// background layer identifier 'A'->0, 'B'->1, ..., 'Z'->25
+// upper layer identifier 'a'->0, 'b'->1, ..., 'z'->25
+// layerIndex_[bg * 26 + up] is the position of this layer in vector
 
 class CGLayerIndex {
     private:

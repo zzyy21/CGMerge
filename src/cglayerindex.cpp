@@ -4,7 +4,7 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-23 20:26:07
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-05 23:59:50
+ * Last Modify  : 2020-07-07 22:21:34
  * Description  : layer index operation
  * Revision     : v1.0 - Get layer info from txt file by expimg
  *                v2.0 - Get layer info from json file by KrkrExtract
@@ -19,9 +19,10 @@
 #include "cglayer.h"
 #include "json.hpp"
 
-// Used to extract values from txt format lines
 // No longer used after v2.0 due to the use of json layer info
 /*
+// return the value get from txt format lines
+// @param 1 - line: input line with format:"xxx:   <value>"
 int CGLayerIndex::getValue(const std::string &line) {
     std::string tmpString;
     tmpString = line.substr(line.find(':') + 1);
@@ -29,6 +30,10 @@ int CGLayerIndex::getValue(const std::string &line) {
 }
 */
 
+// get pictrue background and upper layer identifier from input line
+// @param 1 - line: input line with format:"name   :<Aa>"
+// @param 2 - p_bgLayer: pointer to store background identifier
+// @param 3 - p_upLayer: pointer to upper layer identifier
 void CGLayerIndex::getPicId(const std::string &line, int* p_bgLayer, int* p_upLayer) {
     int infoStart = line.rfind(' ');
     char tmpChar;
@@ -50,9 +55,9 @@ void CGLayerIndex::getPicId(const std::string &line, int* p_bgLayer, int* p_upLa
     }
 }
 
-// Used to get infos from txt file
 // No longer used due after v2.0 to the use of json layer info
 /*
+// get series layer infos from txt file extracted by expimg
 int CGLayerIndex::getInfoTxt() {
     std::string lineBuff;
     std::ifstream txtFile;
@@ -120,6 +125,7 @@ int CGLayerIndex::getInfoTxt() {
 }
 */
 
+// get series layer infos from json file extracted by KrkrExtraxct
 int CGLayerIndex::getInfoJson() {
     std::string jsonFileName = seriesName_ + ".json";
     std::ifstream jsonFile(jsonFileName, std::ios::in|std::ios::binary);
@@ -157,10 +163,16 @@ int CGLayerIndex::getInfoJson() {
     return totalLayers;
 }
 
+// default constructor of CGLayerIndex,
+// create object with seriesName_ = "dummy"
 CGLayerIndex::CGLayerIndex() {
     seriesName_ = "dummy";
 }
 
+// CGLayerIndex constructor,
+// create index object with series name in parameter,
+// and read json file to get layer information
+// @param 1 - seriesName: series name of this index
 CGLayerIndex::CGLayerIndex(const std::string &seriesName) {
     for (int i = 0; i < 26 * 26; i++) {
         layerIndex_[i] = -1;
@@ -174,27 +186,36 @@ CGLayerIndex::CGLayerIndex(const std::string &seriesName) {
 CGLayerIndex::~CGLayerIndex() {
 }
 
+// return series name of the index
 std::string CGLayerIndex::seriesName() {
     return seriesName_;
 };
 
+// return total layer number in the index
 int CGLayerIndex::layerNum() {
     return(layerNum_);
 }
 
+// return image width of the cg series
 int CGLayerIndex::imageWidth() {
     return imageWidth_;
 };
 
+// return image height of the cg series
 int CGLayerIndex::imageHeight() {
     return imageHeight_;
 };
 
+// return CGLayer by background and upper layer identifier
+// @param 1 - bgLayer: background identifier
+// @param 2 - upLayer: upper layer identifier
 CGLayer CGLayerIndex::findLayer(int bgLayer, int upLayer) {
     // TODO: if layer exist?
     return layers_[layerIndex_[bgLayer * 26 + upLayer] ];
 }
 
+// return CGLayer by position number in index.
+// @param 1 - availableIndexNo: index No
 CGLayer CGLayerIndex::findLayer(int availableIndexNo) {
     // TODO: if layer exist?
     return layers_[layerIndex_[availableIndex_[availableIndexNo] ] ];

@@ -4,7 +4,7 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-24 15:06:55
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-06 18:26:55
+ * Last Modify  : 2020-07-07 22:26:41
  * Description  : operation to single cg picture
  * Revision     : v1.0 - first version for generate Magick convert
  *                  command-lines
@@ -23,19 +23,27 @@ CGPic::CGPic() {
 CGPic::~CGPic() {
 }
 
+// set picture size
+// @param 1 - width: width of the pic
+// @param 2 - height: height of the pic
 void CGPic::setSize(int width, int height) {
     width_ = width;
     height_ = height;
 }
 
+// append a layer to the top of picture
+// @param 1 - layer: layer to be added
 void CGPic::addLayer(const CGLayer &layer) {
     layers_.push_back(layer);
 }
 
+// set the output file name of the picture
+// @param 1 - fileName: name to be set
 void CGPic::setFileName(const std::string &fileName) {
     fileName_ = fileName;
 }
 
+// return the command-line script to merge the picture using Magick
 std::string CGPic::magickMergeScript() {
     std::string commandLine = "magick convert -size ";
     commandLine += std::to_string(width_) + "x" + std::to_string(height_) + " ";

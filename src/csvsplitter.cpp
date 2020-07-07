@@ -4,7 +4,7 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-24 19:43:38
  * Modifed by   : zzyy21
- * Last Modify  : 2020-06-24 19:43:38
+ * Last Modify  : 2020-07-07 23:15:37
  * Description  : functions to handle csv file
  * Revision     : 
  * **************************************************************** */
@@ -21,6 +21,12 @@
 #include <cstdio>
 #include <iostream>
 
+// get cg information from cg name string get from csv file
+// @param 1 - cgInfo: cg name string
+// @param 3 - p_cgSeriesName: pointer to store cg's series name
+// @param 3 - p_bgLayer: pointer to store background identifier
+// @param 4 - p_upLayer: pointer to upper layer identifier
+// example: "ev101aa" --> "ev101a", 0, 0; "ev113_mbc" --> "ev113_mm", 1, 2;
 void CSVFileSplitter::cgInfo(const std::string &cgInfo, std::string* p_cgSeriesName, int* p_bgLayer, int* p_upLayer) {
     int stringLen = cgInfo.length();
     std::string tmpString = cgInfo.substr(0, stringLen - 2);
@@ -52,21 +58,37 @@ void CSVFileSplitter::cgInfo(const std::string &cgInfo, std::string* p_cgSeriesN
     }
 }
 
+// return a vector of CGPic get from csv line
+// @param 1 - csvLine: line from csv file. 
+// example format: "thum_ev104,芳04,\tev104aa,ev104ab,ev104ac,ev104ad,ev104ae,ev104af"
+// example format: "thum_ev311,ム11,\tev311aa,ev311ab,ev311ab|*ev311_aa"
 std::vector<CGPic> CSVFileSplitter::csvLineSplit(const std::string &csvLine) {
     std::vector<CGPic> cgPics;
     std::string tmpLine = csvLine;
     size_t splitPosition;
 
+    // useless thumbnail info
     splitPosition = tmpLine.find(',');
     tmpLine = tmpLine.substr(splitPosition + 1);
 
+    // cg series name displayed in game, used in output file name
     splitPosition = tmpLine.find(',');
     std::string cgName = tmpLine.substr(0, splitPosition);
 
+    // process the end of line to make it easier to split
     splitPosition = tmpLine.find('\t');
     tmpLine = tmpLine.substr(splitPosition + 1);
     removeEOLChar(&tmpLine);
     tmpLine = tmpLine + ",";
+
+    //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    // if the cg name is "ev418bc|*ev418_ab"
+    // it has four layers in two series, in the order from background to uppest:
+    // ("ev418a", 1, 0), main series background layer
+    // ("ev418a", 1, 2), main series upper layer
+    // ("ev418_a", 0, 0), add series background layer
+    // ("ev418_a", 0, 1), add series upper layer
+    //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     std::string mainSeriesName;
     int mainBgLayer;
@@ -88,15 +110,17 @@ std::vector<CGPic> CSVFileSplitter::csvLineSplit(const std::string &csvLine) {
             std::string addcgInfo = tmpCGpicInfo.substr(addPosition + 2);
             cgInfo(addcgInfo, &addSeriesName, &addBgLayer, &addUpLayer);
 
-            // new add series
+            // new add series, create a new layer index for the new series
             if (addSeriesName != (*currentAddSeries_).seriesName()) {
                 delete currentAddSeries_;
                 currentAddSeries_ = new CGLayerIndex(addSeriesName);
             }
 
+            // addUpLayer != 0 -> append add series upper layer
             if (addUpLayer) {
                 tmpCGPic.addLayer((*currentAddSeries_).findLayer(addBgLayer, addUpLayer));
             }
+            // append add series background layer
             tmpCGPic.addLayer((*currentAddSeries_).findLayer(addBgLayer, 0));
 
             tmpCGpicInfo = tmpCGpicInfo.substr(0, addPosition);
@@ -104,15 +128,17 @@ std::vector<CGPic> CSVFileSplitter::csvLineSplit(const std::string &csvLine) {
 
         cgInfo(tmpCGpicInfo, &mainSeriesName, &mainBgLayer, &mainUpLayer);
 
-        // new main series
+        // new main series, create a new layer index for the new series
         if (mainSeriesName != (*currentMainSeries_).seriesName()) {
             delete currentMainSeries_;
             currentMainSeries_ = new CGLayerIndex(mainSeriesName);
         }
 
+        // mainUpLayer != 0 -> append main series upper layer
         if (mainUpLayer) {
             tmpCGPic.addLayer((*currentMainSeries_).findLayer(mainBgLayer, mainUpLayer));
         }
+        // append main series background layer
         tmpCGPic.addLayer((*currentMainSeries_).findLayer(mainBgLayer, 0));
 
         tmpCGPic.setSize((*currentMainSeries_).imageWidth(), (*currentMainSeries_).imageHeight());
@@ -128,6 +154,8 @@ std::vector<CGPic> CSVFileSplitter::csvLineSplit(const std::string &csvLine) {
     return cgPics;
 }
 
+// CSVFileSplitter constructor, handle the file with input name.
+// @param 1 - csvFileName: path to csv file
 CSVFileSplitter::CSVFileSplitter(const std::string &csvFileName) {
     csvFileName_ = csvFileName;
     csvCGPicSeriesNum_ = 0;
@@ -143,6 +171,7 @@ CSVFileSplitter::CSVFileSplitter(const std::string &csvFileName) {
     currentAddSeries_ = new CGLayerIndex;
 
     while (std::getline(csvFile, lineBuff)) {
+        // lines below ":" is SD pic
         if (lineBuff.at(0) == ':') {
             break;
         }
@@ -161,6 +190,7 @@ CSVFileSplitter::CSVFileSplitter(const std::string &csvFileName) {
 CSVFileSplitter::~CSVFileSplitter() {
 }
 
+// print stored cgs info for debug
 void CSVFileSplitter::debugPrint() {
     std::cout << "csvCGPicSeriesNum_ = " << csvCGPicSeriesNum_ << std::endl;
     for (int i = 0; i < csvCGPicSeriesNum_; i++) {
@@ -176,7 +206,9 @@ void CSVFileSplitter::debugPrint() {
     }
 }
 
+// generate a batch script with merging command-line of all CGs stored
 void CSVFileSplitter::writeBatFile() {
+    // Prompt text uses GB2312 encoding formatt
     std::ofstream outFile("merge.bat", std::ios::out | std::ios::binary);
     outFile << "@echo off\r\n";
 
