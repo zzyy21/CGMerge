@@ -15,10 +15,6 @@ CGMerge是一个合成柚子社galgame CG的工具。
 
 [Full instruction of extract resources and merge CG (zh-CN only)](/doc/full_flow.md)
 
-### Install ImageMagick
-
-`ImageMagick` command-line tools is needed for png merging. [Download page](https://imagemagick.org/script/download.php#windows)
-
 ### Input files needed (get from extracted resources)
 
 data.xp3 -> main/`cglist.csv` & `imagediffmap.csv`, These two files must `be converted into ANSI encoding format`  
@@ -28,12 +24,13 @@ The input files need to be placed in the same directory as the tool's executable
 
 ### Merge CGs
 
-Double click to run CGMerge.exe (read cglist.csv by default)  
+After all needed input files prepared  
+Double click to run CGMerge.exe  
 or  
-run the command below to read specified csv file
+run the program in command line
 
 ``` cmd
-CGMerge yourfile.csv
+CGMerge
 ```
 
 ## Development setting
@@ -58,16 +55,19 @@ Thirdparty libraries used:
 
 3. [zlib](https://www.zlib.net/), dependency of libpng
 
+4. [OpenCV](https://opencv.org/), used in image processing functions
+
 Thirdparty library include path: `3rdparty/include/`
 
 Thirdparty library path: `3rdparty/lib/`  
-The library provided in the project is `static library` compiled with `MinGW-w64`, you may use your own build if this not work or you use a different enviroment.  
+The libraries provided in the project are `dll` file compiled with `MinGW-w64`, you may use your own build if this not work or you use a different enviroment.  
 Version of library provided in `3rdparty/lib/`:
 
 ````txt
 tlg2png: v1.0
 libpng: 1.6.37
 zlib: 1.2.11
+OpenCV: 4.3.0 (required functions only)
 ````
 
 ## License

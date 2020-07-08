@@ -10,7 +10,6 @@
 ### 需要的工具
 
 * [KrKrExtract](https://github.com/xmoeproject/KrkrExtract/releases) : xmoe的KiriKiri解包工具
-* [ImageMagick](https://imagemagick.org/script/download.php#windows) : 用于CG合成的图像处理工具
 
 ### 解包与合成过程
 
@@ -20,7 +19,7 @@
 
 3. `PSB Package` 中勾选 `JSON` 和 `Unpack Animation` 两项。将`evimage.xp3`拖进KrKrExtract的窗口，进行解码。解码后在 `./KrkrExtract_Output/evimage/` 得到 `*.json` 文件和同名目录，目录中包括 `<n>.tlg` 文件。json文件中包含了CG的相关信息，图层则在各个tlg文件中。
 
-4. 将`*.json`、json同名目录及目录中`<n>.tlg`、ANSI编码的`cglist.csv`放在同一目录下，执行`CGMerge`
+4. 将`*.json`、json同名目录及目录中`<n>.tlg`、ANSI编码的`cglist.csv`及`imagediffmap.csv`放在本工具同一目录下，执行`CGMerge`。泡杯咖啡等待工具运行完成，合成的CG将放在`CGOutput`目录中。
 
 ### Reference
 

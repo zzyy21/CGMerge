@@ -18,10 +18,6 @@ CGMerge是一个合成柚子社galgame CG的工具。
 
 [完整的解包合成流程](/doc/full_flow.md)
 
-### 安装ImageMagick工具
-
-`ImageMagick` command-line tools 将被用于png的合成。[下载页面](https://imagemagick.org/script/download.php#windows)
-
 ### 需要的输入文件（解包获得）
 
 data.xp3 -> main/`cglist.csv` & `imagediffmap.csv`, 并将文件`转换为ANSI编码`格式  
@@ -31,12 +27,13 @@ evimage -> `*.json` & `*/n.tlg`
 
 ### 执行合成
 
-打开CGMerge.exe（默认读取cglist.csv）  
+将所有输入文件准备好后  
+直接双击打开CGMerge.exe  
 或  
-执行命令读取特定csv文件
+在命令行中执行
 
 ``` cmd
-CGMerge yourfile.csv
+CGMerge
 ```
 
 ## 开发配置
@@ -61,16 +58,19 @@ make
 
 3. [zlib](https://www.zlib.net/)，libpng的依赖库
 
+4. [OpenCV](https://opencv.org/), 用于图像处理
+
 第三方库头文件目录：`3rdparty/include/`
 
 第三方库目录：`3rdparty/lib/`  
-项目中提供的库是使用 `MinGW-w64` 编译的 `静态库` ，如果它不能正常使用，或者你使用别的环境，可能需要使用你自己编译的库文件。  
+项目中提供的库是使用 `MinGW-w64` 编译的 `dll` 文件 ，如果它不能正常使用，或者你使用别的环境，可能需要使用你自己编译的库文件。  
 在 `3rdparty/lib/` 目录下提供的库的版本:
 
 ````txt
 tlg2png: v1.0
 libpng: 1.6.37
 zlib: 1.2.11
+OpenCV: 4.3.0 (仅包含所需的功能)
 ````
 
 ## 许可
