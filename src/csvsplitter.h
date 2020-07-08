@@ -4,7 +4,7 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-24 11:53:59
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-08 17:32:28
+ * Last Modify  : 2020-07-08 23:26:15
  * Description  : CSVSplitter class for csv file handling
  * Revision     : v1.0 - process cglist.csv
  *                v3.0 - process cglist.csv & imagediffmap.csv,
@@ -54,6 +54,7 @@ class CSVFileSplitter {
         std::string csvFileName_;
         std::vector<std::vector<CGPic> > csvCGPicSeries_;
         int csvCGPicSeriesNum_;
+        int totalPicNum_;
 
         CSVimagediffmapSplitter csvImageDiffmapSplitter;
 
@@ -68,6 +69,9 @@ class CSVFileSplitter {
     public:
         CSVFileSplitter(const std::string &csvFileName = "cglist.csv");
         ~CSVFileSplitter();
+
+        int totalGroup();
+        int totalPic();
 
         // **No longer used after v3.0 due to the use of OpenCV
         //void debugPrint();

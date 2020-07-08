@@ -4,7 +4,7 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-24 19:42:04
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-08 22:33:29
+ * Last Modify  : 2020-07-08 23:29:56
  * Description  : main entry of CGMerge
  * Revision     : v1.0 - using Magick command-line tool batch file
  *                v3.0 - using built-in merge fuction with OpenCV
@@ -33,7 +33,7 @@ int main(void) {
     system("mkdir CGOutput");
     CSVFileSplitter csvSplitter("cglist.csv");
 
-    printf("\r\n\r\nCG\xBA\xCF\xB3\xC9\xBD\xE1\xCA\xF8~~\r\n");
+    printf("\r\n\r\nCG\xBA\xCF\xB3\xC9\xBD\xE1\xCA\xF8~~  \xB9\xB2\xBA\xCF\xB3\xC9 %d \xD7\xE9 %d \xD5\xC5\r\n", csvSplitter.totalGroup(), csvSplitter.totalPic());
     getchar();
 
     //csvSplitter.writeBatFile();

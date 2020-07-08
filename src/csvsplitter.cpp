@@ -4,7 +4,7 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-24 19:43:38
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-08 22:36:46
+ * Last Modify  : 2020-07-08 23:37:16
  * Description  : functions to handle csv file
  * Revision     : v1.0 - process cglist.csv
  *                v3.0 - process cglist.csv & imagediffmap.csv,
@@ -181,6 +181,8 @@ std::vector<CGPic> CSVFileSplitter::csvLineSplit(const std::string &csvLine) {
     std::string tmpLine = csvLine;
     size_t splitPosition;
 
+    std::string charaNo = tmpLine.substr(7, 1);
+
     // useless thumbnail info
     splitPosition = tmpLine.find(',');
     tmpLine = tmpLine.substr(splitPosition + 1);
@@ -262,7 +264,7 @@ std::vector<CGPic> CSVFileSplitter::csvLineSplit(const std::string &csvLine) {
         tmpCGPic.setSize((*currentMainSeries_).imageWidth(), (*currentMainSeries_).imageHeight());
         char cgNumChar[3];
         sprintf(cgNumChar, "%03d", cgPicNum);
-        std::string tmpCGFileName = cgName + "_" + cgNumChar + ".png";
+        std::string tmpCGFileName = charaNo + "_" + cgName + "_" + cgNumChar + ".png";
         tmpCGPic.setFileName(tmpCGFileName);
         cgPics.push_back(tmpCGPic);
 
@@ -289,6 +291,7 @@ void CSVFileSplitter::removeEOLChar(std::string *inString) {
 CSVFileSplitter::CSVFileSplitter(const std::string &csvFileName) {
     csvFileName_ = csvFileName;
     csvCGPicSeriesNum_ = 0;
+    totalPicNum_ = 0;
     std::ifstream csvFile;
     std::string lineBuff;
     csvFile.open(csvFileName_, std::ios::in|std::ios::binary);
@@ -315,6 +318,7 @@ CSVFileSplitter::CSVFileSplitter(const std::string &csvFileName) {
             printf("\r\n\xA1\xAA\xA1\xAA\xA1\xAA\xA1\xAA\xA1\xAA \xB5\xDA %i \xD7\xE9 \xA1\xAA\xA1\xAA\xA1\xAA\xA1\xAA\xA1\xAA\r\n", csvCGPicSeriesNum_);
             std::vector<CGPic> cgGroup = csvLineSplit(lineBuff);
             int cgNum = cgGroup.size();
+            totalPicNum_ += cgNum;
             printf("\xB5\xDA %i \xD7\xE9\xA3\xAC\xB9\xB2 %i \xD5\xC5\xA3\xBA\r\n", csvCGPicSeriesNum_, cgNum);
             for (int i = 0; i < cgNum; i++) {
                 printf("\xD5\xFD\xD4\xDA\xBA\xCF\xB3\xC9\xB5\xDA %i \xD5\xC5\xA1\xAD\r\n", i + 1);
@@ -330,6 +334,16 @@ CSVFileSplitter::CSVFileSplitter(const std::string &csvFileName) {
 }
 
 CSVFileSplitter::~CSVFileSplitter() {
+}
+
+// return total number of CG group
+int CSVFileSplitter::totalGroup() {
+    return csvCGPicSeriesNum_;
+}
+
+// return total number of CG Image
+int CSVFileSplitter::totalPic() {
+    return totalPicNum_;
 }
 
 // No longer used after v3.0 due to the use of OpenCV
