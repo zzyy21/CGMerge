@@ -9,15 +9,18 @@
 # Revision     : v1.0 - first release
 #                v2.0 - Updated directory structure and Makefile 
 #                       for integrating third-party libraries
+#                v3.0 - change default target to exe instead of
+#                       exe-static due to the use of OpenCV.
+#                       delete exe-static target.
 # ################################################################
 
 .PHONY : default_target
-default_target: exe-static
+default_target: exe
 
 # rules for build all
 # choose item for build all
 .PHONY :all
-all: exe exe-static
+all: exe
 
 # build target filename
 TARGET = CGMerge
@@ -53,7 +56,7 @@ EXTRA_LIBRARY_PATH =
 # extra libraries
 # format: <library1_name> <library2_name>
 # example: EXTRA_LIBRARIES = foo bar
-EXTRA_LIBRARIES = tlg2png png zlib
+EXTRA_LIBRARIES = tlg2png png16 zlib opencv_imgcodecs430 opencv_imgproc430 opencv_core430
 
 # project path definition
 BUILD_PATH = build
@@ -99,12 +102,6 @@ CFLAGS = -std=$(STD_FLAG) $(COMPILE_FLAGS)
 exe: $(BUILD_PATH)/$(TARGET).exe
 $(BUILD_PATH)/$(TARGET).exe: $(OBJECTS)
 	$(CC) -o $(BUILD_PATH)/$(TARGET).exe $(OBJECTS) $(LDFLAGS) $(LLFLAGS) $(CFLAGS)
-
-# rules for build static executable file
-.PHONY :exe-static
-exe-static: $(BUILD_PATH)/$(TARGET)_static.exe
-$(BUILD_PATH)/$(TARGET)_static.exe: $(OBJECTS)
-	$(CC) -static -o $(BUILD_PATH)/$(TARGET)_static.exe $(OBJECTS) $(LDFLAGS) $(LLFLAGS) $(CFLAGS)
 
 # pull in dependency info for *existing* .o files
 -include $(OBJECTS:.o=.d)

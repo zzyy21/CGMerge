@@ -4,32 +4,41 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-22 22:32:07
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-07 22:01:20
+ * Last Modify  : 2020-07-08 17:18:30
  * Description  : layer information
  * Revision     : v1.0 - first release
  *                v2.0 - Add function to call tlg2png to deal with
  *                  tlg files extracted by KrkrExtract.
  *                  Modify the rule for generating fileName_ to
  *                  match files processed by tlg2png.
+ *                v3.0 - add fuctions using OpenCV, read image
+ *                  files and pad to target size.
  * **************************************************************** */
 
 #include "cglayer.h"
 
 #include <string>
 //#include <iostream>
+#include "opencv2/opencv.hpp"
 
 #include "tlg2png/Image.h"
 #include "tlg2png/TlgConverter.h"
 
 // CGLayer constructor, get layer infomation from parameters.
 // set info variables and call tlg2png to extract png image
+// get the image into Mat
 // @param 1 - seriesName: layer series name
 // @param 2 - layerid: layer id, to find tlg file
-// @param 3 - left: column position when append layer on background
-// @param 4 - top: row position when append layer on background
-CGLayer::CGLayer(const std::string &seriesName, int layerid, int left, int top) {
+// @param 3 - width: target width of the layer
+// @param 4 - height: target height of the layer
+// @param 5 - left: column position when append layer on background
+// @param 6 - top: row position when append layer on background
+CGLayer::CGLayer(const std::string &seriesName, int layerid, int width,
+                 int height, int left, int top) {
     seriesName_ = seriesName;
     layerid_ = layerid;
+    width_ = width;
+    height_ = height;
     left_ = left;
     top_ = top;
 
@@ -40,6 +49,8 @@ CGLayer::CGLayer(const std::string &seriesName, int layerid, int left, int top) 
     fileName_ = seriesName_ + "/" + std::to_string(layerid_) + ".png";
 
     tlg2png();
+
+    readImg();
 }
 
 CGLayer::~CGLayer() {
@@ -66,4 +77,20 @@ void CGLayer::tlg2png() {
     TlgConverter converter;
     Image image = converter.read(tlgFilePath);
     converter.save(image, fileName_);
+}
+
+// get cv::Mat from image file and pad to target size
+void CGLayer::readImg() {
+    img_ = cv::imread(fileName_, cv::IMREAD_UNCHANGED);
+    cv::Scalar padPixel(0, 0, 0, 0);
+    int padTop = top_;
+    int padBottom = height_ - img_.rows - top_;
+    int padLeft = left_;
+    int padRight = width_ - img_.cols - left_;
+    cv::copyMakeBorder(img_, img_, padTop, padBottom, padLeft, padRight, cv::BORDER_CONSTANT, padPixel);
+}
+
+// return the readed image in cv::Mat format
+cv::Mat CGLayer::img() {
+    return img_;
 }

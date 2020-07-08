@@ -4,10 +4,12 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-24 19:43:38
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-08 14:55:59
+ * Last Modify  : 2020-07-08 17:32:11
  * Description  : functions to handle csv file
  * Revision     : v1.0 - process cglist.csv
- *                v3.0 - process cglist.csv & imagediffmap.csv
+ *                v3.0 - process cglist.csv & imagediffmap.csv,
+ *                  merge images using OpenCV instead of generate
+ *                  Magick Command-line scripts
  * **************************************************************** */
 
 #include "csvsplitter.h"
@@ -301,8 +303,16 @@ CSVFileSplitter::CSVFileSplitter(const std::string &csvFileName) {
             break;
         }
         else {
-            csvCGPicSeries_.push_back(csvLineSplit(lineBuff));
-            csvCGPicSeriesNum_++;
+            // before v3.0, store the info to generate Magick script
+            //csvCGPicSeries_.push_back(csvLineSplit(lineBuff));
+            //csvCGPicSeriesNum_++;
+
+            // v3.0 merge image using OpenCV
+            std::vector<CGPic> cgGroup = csvLineSplit(lineBuff);
+            int cgNum = cgGroup.size();
+            for (int i = 0; i < cgNum; i++) {
+                cgGroup[i].saveImage();
+            }
         }
     }
 
@@ -315,6 +325,8 @@ CSVFileSplitter::CSVFileSplitter(const std::string &csvFileName) {
 CSVFileSplitter::~CSVFileSplitter() {
 }
 
+// No longer used after v3.0 due to the use of OpenCV
+/*
 // print stored cgs info for debug
 void CSVFileSplitter::debugPrint() {
     std::cout << "csvCGPicSeriesNum_ = " << csvCGPicSeriesNum_ << std::endl;
@@ -330,7 +342,10 @@ void CSVFileSplitter::debugPrint() {
         }
     }
 }
+*/
 
+// No longer used after v3.0 due to the use of OpenCV
+/*
 // generate a batch script with merging command-line of all CGs stored
 void CSVFileSplitter::writeBatFile() {
     // Prompt text uses GB2312 encoding formatt
@@ -362,3 +377,4 @@ void CSVFileSplitter::writeBatFile() {
     outFile << "pause > nul\r\n";
     outFile << "del %0\r\n";
 }
+*/

@@ -4,12 +4,14 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-24 15:06:55
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-07 22:26:41
+ * Last Modify  : 2020-07-08 17:31:30
  * Description  : operation to single cg picture
  * Revision     : v1.0 - first version for generate Magick convert
  *                  command-lines
  *                v1.0(200705) - add png:include-chunk definition
  *                v1.0(200706) - modify quality parameter setting
+ *                v3.0 - add fuctions using OpenCV, merge image
+ *                  layers and save image file.
  * **************************************************************** */
 
 #include "cglayer.h"
@@ -21,6 +23,26 @@ CGPic::CGPic() {
 }
 
 CGPic::~CGPic() {
+}
+
+// append 4 channel upper layer on 3 channel background 
+// layer in same size. using opencv library.
+// @param 1 - up: upper layer (4 channels)
+// @param 2 - p_bg: pointer to the background layer, also the result
+void CGPic::imgAppendLayer(const cv::Mat& up, cv::Mat* p_bg) {
+    std::vector<cv::Mat> srcChannels;
+    std::vector<cv::Mat> outChannels;
+    split(up, srcChannels);
+    split(*p_bg, outChannels);
+
+    for (int i = 0; i < 3; i++) {
+        // out_RGB <--- dst_RGB(1 - src_A)
+        outChannels[i] = outChannels[i].mul(255.0 - srcChannels[3], 1 / 255.0);
+        // out_RGB <--- src_RGBsrc_A + dst_RGB(1 - src_A)
+        outChannels[i] += srcChannels[i].mul(srcChannels[3], 1 / 255.0);
+    }
+
+    cv::merge(outChannels, *p_bg);
 }
 
 // set picture size
@@ -43,6 +65,8 @@ void CGPic::setFileName(const std::string &fileName) {
     fileName_ = fileName;
 }
 
+// No longer used after v3.0 due to the use of OpenCV
+/*
 // return the command-line script to merge the picture using Magick
 std::string CGPic::magickMergeScript() {
     std::string commandLine = "magick convert -size ";
@@ -83,4 +107,23 @@ std::string CGPic::magickMergeScript() {
     commandLine += "-mosaic CGOutput\\" + fileName_;
 
     return commandLine;
+}
+*/
+
+void CGPic::saveImage() {
+    int layerNum = layers_.size();
+    cv::Mat img;
+    // background layer in 3 channels
+    cv::cvtColor(layers_[layerNum - 1].img(), img, cv::COLOR_BGRA2BGR);
+
+    for (int i = layerNum - 2; i >= 0; i--) {
+        imgAppendLayer(layers_[i].img(), &img);
+    }
+
+    std::string outputPath = "CGOutput\\" + fileName_;
+    // huffman only compression strategy
+    // fastest, acceptable file size
+    std::vector<int> compressionParams = {cv::IMWRITE_PNG_STRATEGY, cv::IMWRITE_PNG_STRATEGY_HUFFMAN_ONLY};
+
+    cv::imwrite(outputPath, img, compressionParams);
 }
