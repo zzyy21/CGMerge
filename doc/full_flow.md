@@ -16,7 +16,7 @@
 
 1. 将KrKrExtract放入游戏目录下，并将游戏程序拖到KrKrExtract.exe上运行。
 
-2. `Text Decryption` 选择 `Text`。将`data.xp3`拖进KrKrExtract的窗口，进行解码。解码完成后找到`./KrkrExtract_Output/data/main/cglist.csv`文件。这个文件包含了CG列表，并且根据列表中的CG名我们可以得到每张CG的合成规则。打开该文件，并使用`ANSI`(GB2312)编码重新保存。此后合成使用编码修改后的文件。
+2. `Text Decryption` 选择 `Text`。将`data.xp3`拖进KrKrExtract的窗口，进行解码。解码完成后找到`./KrkrExtract_Output/data/main/` 目录下的 `cglist.csv` 及 `imagediffmap.csv` 两个文件。文件中包含了CG列表，并且根据列表中的CG名我们可以得到每张CG的合成规则。打开文件，并使用`ANSI`(GB2312)编码重新保存。此后合成使用编码修改后的文件。
 
 3. `PSB Package` 中勾选 `JSON` 和 `Unpack Animation` 两项。将`evimage.xp3`拖进KrKrExtract的窗口，进行解码。解码后在 `./KrkrExtract_Output/evimage/` 得到 `*.json` 文件和同名目录，目录中包括 `<n>.tlg` 文件。json文件中包含了CG的相关信息，图层则在各个tlg文件中。
 

@@ -21,7 +21,7 @@ CGMerge是一个合成柚子社galgame CG的工具。
 
 ### Input files needed (get from extracted resources)
 
-data.xp3 -> main/`cglist.csv`, This file must `be converted into ANSI encoding format`  
+data.xp3 -> main/`cglist.csv` & `imagediffmap.csv`, These two files must `be converted into ANSI encoding format`  
 evimage.xp3 -> `*.json` & `*/n.tlg`
 
 The input files need to be placed in the same directory as the tool's executable file.

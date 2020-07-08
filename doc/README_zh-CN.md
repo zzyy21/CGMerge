@@ -24,7 +24,7 @@ CGMerge是一个合成柚子社galgame CG的工具。
 
 ### 需要的输入文件（解包获得）
 
-data.xp3 -> main/`cglist.csv`, 并将该文件`转换为ANSI编码`格式  
+data.xp3 -> main/`cglist.csv` & `imagediffmap.csv`, 并将文件`转换为ANSI编码`格式  
 evimage -> `*.json` & `*/n.tlg`
 
 输入文件需要和工具放在同一目录下。
