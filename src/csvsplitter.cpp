@@ -4,12 +4,13 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-24 19:43:38
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-08 17:32:11
+ * Last Modify  : 2020-07-08 22:36:46
  * Description  : functions to handle csv file
  * Revision     : v1.0 - process cglist.csv
  *                v3.0 - process cglist.csv & imagediffmap.csv,
  *                  merge images using OpenCV instead of generate
  *                  Magick Command-line scripts
+ *                v3.1 - add prompt text for user
  * **************************************************************** */
 
 #include "csvsplitter.h"
@@ -21,7 +22,7 @@
 #include <string>
 #include <vector>
 #include <cstdio>
-#include <iostream>
+//#include <iostream>
 
 // CSVimagediffmapSplitter constructor.
 // open "imagediffmap.csv" and get the first line to lineBuff_
@@ -228,6 +229,7 @@ std::vector<CGPic> CSVFileSplitter::csvLineSplit(const std::string &csvLine) {
             // new add series, create a new layer index for the new series
             if (addSeriesName != (*currentAddSeries_).seriesName()) {
                 delete currentAddSeries_;
+                printf("\xD5\xFD\xD4\xDA\xCC\xE1\xC8\xA1 %s \xD6\xD0\xCD\xBC\xB2\xE3\xA1\xAD\r\n", addSeriesName.c_str());
                 currentAddSeries_ = new CGLayerIndex(addSeriesName);
             }
 
@@ -246,6 +248,7 @@ std::vector<CGPic> CSVFileSplitter::csvLineSplit(const std::string &csvLine) {
         // new main series, create a new layer index for the new series
         if (mainSeriesName != (*currentMainSeries_).seriesName()) {
             delete currentMainSeries_;
+            printf("\xD5\xFD\xD4\xDA\xCC\xE1\xC8\xA1 %s \xD6\xD0\xCD\xBC\xB2\xE3\xA1\xAD\r\n", mainSeriesName.c_str());
             currentMainSeries_ = new CGLayerIndex(mainSeriesName);
         }
 
@@ -258,7 +261,7 @@ std::vector<CGPic> CSVFileSplitter::csvLineSplit(const std::string &csvLine) {
 
         tmpCGPic.setSize((*currentMainSeries_).imageWidth(), (*currentMainSeries_).imageHeight());
         char cgNumChar[3];
-        sprintf(cgNumChar, "%02d", cgPicNum);
+        sprintf(cgNumChar, "%03d", cgPicNum);
         std::string tmpCGFileName = cgName + "_" + cgNumChar + ".png";
         tmpCGPic.setFileName(tmpCGFileName);
         cgPics.push_back(tmpCGPic);
@@ -308,9 +311,13 @@ CSVFileSplitter::CSVFileSplitter(const std::string &csvFileName) {
             //csvCGPicSeriesNum_++;
 
             // v3.0 merge image using OpenCV
+            csvCGPicSeriesNum_++;
+            printf("\r\n\xA1\xAA\xA1\xAA\xA1\xAA\xA1\xAA\xA1\xAA \xB5\xDA %i \xD7\xE9 \xA1\xAA\xA1\xAA\xA1\xAA\xA1\xAA\xA1\xAA\r\n", csvCGPicSeriesNum_);
             std::vector<CGPic> cgGroup = csvLineSplit(lineBuff);
             int cgNum = cgGroup.size();
+            printf("\xB5\xDA %i \xD7\xE9\xA3\xAC\xB9\xB2 %i \xD5\xC5\xA3\xBA\r\n", csvCGPicSeriesNum_, cgNum);
             for (int i = 0; i < cgNum; i++) {
+                printf("\xD5\xFD\xD4\xDA\xBA\xCF\xB3\xC9\xB5\xDA %i \xD5\xC5\xA1\xAD\r\n", i + 1);
                 cgGroup[i].saveImage();
             }
         }
