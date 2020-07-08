@@ -4,9 +4,10 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-24 19:43:38
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-07 23:15:37
+ * Last Modify  : 2020-07-08 14:55:59
  * Description  : functions to handle csv file
- * Revision     : 
+ * Revision     : v1.0 - process cglist.csv
+ *                v3.0 - process cglist.csv & imagediffmap.csv
  * **************************************************************** */
 
 #include "csvsplitter.h"
@@ -14,13 +15,122 @@
 #include "cgpic.h"
 #include "cglayer.h"
 #include "cglayerindex.h"
-#include "stringhandle.h"
 
 #include <string>
 #include <vector>
 #include <cstdio>
 #include <iostream>
 
+// CSVimagediffmapSplitter constructor.
+// open "imagediffmap.csv" and get the first line to lineBuff_
+CSVimagediffmapSplitter::CSVimagediffmapSplitter() {
+    imagediffmap_.open("imagediffmap.csv", std::ios::in|std::ios::binary);
+    std::getline(imagediffmap_, lineBuff_);
+}
+
+CSVimagediffmapSplitter::~CSVimagediffmapSplitter() {
+    imagediffmap_.close();
+}
+
+// get layer identifier from input line with two char
+// @param 1 - line: input line with format:"<Aa>"
+// @param 2 - p_bgLayer: pointer to store background identifier
+// @param 3 - p_upLayer: pointer to upper layer identifier
+void CSVimagediffmapSplitter::getLayerNum(const std::string &layerNumString, int* p_bgLayer, int* p_upLayer) {
+    char tmpChar;
+    tmpChar = layerNumString.at(0);
+    if ((tmpChar >= 'a') && (tmpChar <= 'z')) {
+        *p_bgLayer = tmpChar - 'a';
+    }
+    else if ((tmpChar >= 'A') && (tmpChar <= 'Z')) {
+        *p_bgLayer = tmpChar - 'A';
+    }
+
+    tmpChar = layerNumString.at(1);
+    if ((tmpChar >= 'a') && (tmpChar <= 'z')) {
+        *p_upLayer = tmpChar - 'a';
+    }
+    else if ((tmpChar >= 'A') && (tmpChar <= 'Z')) {
+        *p_upLayer = tmpChar - 'A';
+    }
+}
+
+// split a line from imagediffmap.csv to get cg series info
+// @param 1 - line: line in imagediffmap.csv
+// example: "ev112mbc,ev112mm,seton,Bc:Ba" -->
+//          series name of ("ev112m", 1, 2) is "ev112mm"
+// example: "ev701bb,ev701b,seton,Bb:Ba" -->
+//          series name of ("ev701", 1, 1) is "ev701b"
+void CSVimagediffmapSplitter::lineSplitt(const std::string &line) {
+    std::string tmpLine = line;
+    size_t splitPosition;
+
+    splitPosition = tmpLine.find(',');
+    std::string findName = tmpLine.substr(0, splitPosition - 2);
+    if (findName != currentFindName_) {
+        seriesNameIndexs_.push_back(newSeriesNameIndex_);
+        findNameIndex_.push_back(findName);
+        currentFindName_ = findName;
+        currentIndexNum_++;
+    }
+
+    int bgLayer;
+    int upLayer;
+    std::string layerNumString = tmpLine.substr(splitPosition - 2, 2);
+    getLayerNum(layerNumString, &bgLayer, &upLayer);
+
+    tmpLine = tmpLine.substr(splitPosition + 1);
+    splitPosition = tmpLine.find(',');
+    std::string seriesName = tmpLine.substr(0, splitPosition);
+    seriesNameIndexs_[currentIndexNum_][bgLayer * 26 + upLayer] = seriesName;
+}
+
+// clear used info and get new for a new group
+// corresponding to a new line in cglist.csv
+void CSVimagediffmapSplitter::getNewGroup() {
+    seriesNameIndexs_.clear();
+    findNameIndex_.clear();
+    currentIndexNum_ = -1;
+    currentFindName_ = "none";
+
+    currentGroupName_ = lineBuff_.substr(0, 5);
+
+    do {
+        if (lineBuff_.substr(0, 5) != currentGroupName_) {
+            break;
+        }
+        lineSplitt(lineBuff_);
+    } while (std::getline(imagediffmap_, lineBuff_));
+
+}
+
+// find cg information from cg name string get from imagediffmap.csv
+// @param 1 - cgInfo: cg name string
+// @param 3 - p_cgSeriesName: pointer to store cg's series name
+// @param 3 - p_bgLayer: pointer to store background identifier
+// @param 4 - p_upLayer: pointer to upper layer identifier
+// example: "ev101aa" --> "ev101a", 0, 0; "ev113_mbc" --> "ev113_mm", 1, 2;
+void CSVimagediffmapSplitter::findInfo(const std::string &cgInfo, std::string* p_cgSeriesName, int* p_bgLayer, int* p_upLayer) {
+    int stringLen = cgInfo.length();
+    std::string tmpString;
+
+    tmpString = cgInfo.substr(stringLen - 2, 2);
+    getLayerNum(tmpString, p_bgLayer, p_upLayer);
+
+    tmpString = cgInfo.substr(0, stringLen - 2);
+    int findNameNum = seriesNameIndexs_.size();
+    for (int i = 0; i < findNameNum; i++) {
+        if (tmpString == findNameIndex_[i]) {
+            *p_cgSeriesName = seriesNameIndexs_[i][(*p_bgLayer) * 26 + (*p_upLayer)];
+            break;
+        }
+    }
+
+}
+
+// No longer used after v3.0 due to getting info from imagediffmap.csv
+// replaced by void CSVimagediffmapSplitter::findInfo(...)
+/*
 // get cg information from cg name string get from csv file
 // @param 1 - cgInfo: cg name string
 // @param 3 - p_cgSeriesName: pointer to store cg's series name
@@ -57,6 +167,7 @@ void CSVFileSplitter::cgInfo(const std::string &cgInfo, std::string* p_cgSeriesN
         *p_upLayer = tmpChar - 'A';
     }
 }
+*/
 
 // return a vector of CGPic get from csv line
 // @param 1 - csvLine: line from csv file. 
@@ -80,6 +191,8 @@ std::vector<CGPic> CSVFileSplitter::csvLineSplit(const std::string &csvLine) {
     tmpLine = tmpLine.substr(splitPosition + 1);
     removeEOLChar(&tmpLine);
     tmpLine = tmpLine + ",";
+
+    csvImageDiffmapSplitter.getNewGroup();
 
     //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     // if the cg name is "ev418bc|*ev418_ab"
@@ -108,7 +221,7 @@ std::vector<CGPic> CSVFileSplitter::csvLineSplit(const std::string &csvLine) {
         size_t addPosition = tmpCGpicInfo.find("|*");
         if (addPosition != std::string::npos) {
             std::string addcgInfo = tmpCGpicInfo.substr(addPosition + 2);
-            cgInfo(addcgInfo, &addSeriesName, &addBgLayer, &addUpLayer);
+            csvImageDiffmapSplitter.findInfo(addcgInfo, &addSeriesName, &addBgLayer, &addUpLayer);
 
             // new add series, create a new layer index for the new series
             if (addSeriesName != (*currentAddSeries_).seriesName()) {
@@ -126,7 +239,7 @@ std::vector<CGPic> CSVFileSplitter::csvLineSplit(const std::string &csvLine) {
             tmpCGpicInfo = tmpCGpicInfo.substr(0, addPosition);
         }
 
-        cgInfo(tmpCGpicInfo, &mainSeriesName, &mainBgLayer, &mainUpLayer);
+        csvImageDiffmapSplitter.findInfo(tmpCGpicInfo, &mainSeriesName, &mainBgLayer, &mainUpLayer);
 
         // new main series, create a new layer index for the new series
         if (mainSeriesName != (*currentMainSeries_).seriesName()) {
@@ -152,6 +265,18 @@ std::vector<CGPic> CSVFileSplitter::csvLineSplit(const std::string &csvLine) {
     }
 
     return cgPics;
+}
+
+// remove all '\r' and \n' at the end of input string
+// @param 1 - inString: pointer to string to be handle
+void CSVFileSplitter::removeEOLChar(std::string *inString) {
+    int size = (*inString).size();
+    char endChar = (*inString).at(size - 1);
+    while ((endChar == '\r') || (endChar == '\n')) {
+        (*inString).erase(size - 1, 1);
+        size--;
+        endChar = (*inString).at(size - 1);
+    }
 }
 
 // CSVFileSplitter constructor, handle the file with input name.
