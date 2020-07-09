@@ -4,12 +4,13 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-22 22:42:02
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-08 17:31:18
+ * Last Modify  : 2020-07-09 00:22:33
  * Description  : class for single cg picture
  * Revision     : v1.0 - first version for generate Magick convert
  *                  command-lines
  *                v3.0 - add fuctions using OpenCV, merge image
  *                  layers and save image file.
+ *                v3.2 - modify to optimize appending layer
  * **************************************************************** */
 
 #ifndef CGPIC_H_
@@ -27,7 +28,9 @@ class CGPic {
         int height_;
         std::vector<CGLayer> layers_;
 
-        void imgAppendLayer(const cv::Mat& up, cv::Mat* p_bg);
+        // **No longer used after v3.2, use imgAppendLayerNew instead
+        //void imgAppendLayer(const cv::Mat& up, cv::Mat* p_bg);
+        void imgAppendLayerNew(const cv::Mat& up, int left, int top, cv::Mat* p_bg);
 
     public:
         CGPic();

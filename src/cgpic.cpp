@@ -4,7 +4,7 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-24 15:06:55
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-08 17:31:30
+ * Last Modify  : 2020-07-09 00:44:08
  * Description  : operation to single cg picture
  * Revision     : v1.0 - first version for generate Magick convert
  *                  command-lines
@@ -12,6 +12,7 @@
  *                v1.0(200706) - modify quality parameter setting
  *                v3.0 - add fuctions using OpenCV, merge image
  *                  layers and save image file.
+ *                v3.2 - modify to optimize appending layer
  * **************************************************************** */
 
 #include "cglayer.h"
@@ -25,6 +26,8 @@ CGPic::CGPic() {
 CGPic::~CGPic() {
 }
 
+// No longer used after v3.2, use imgAppendLayerNew instead
+/*
 // append 4 channel upper layer on 3 channel background 
 // layer in same size. using opencv library.
 // @param 1 - up: upper layer (4 channels)
@@ -43,6 +46,31 @@ void CGPic::imgAppendLayer(const cv::Mat& up, cv::Mat* p_bg) {
     }
 
     cv::merge(outChannels, *p_bg);
+}
+*/
+
+// append 4 channel upper layer to a specific position
+// on 3 channel background layer. using opencv library.
+// @param 1 - up: upper layer (4 channels)
+// @param 2 - left: column position of the upper layer's upper left corner on background
+// @param 3 - top: row position of the upper layer's upper left corner on background
+// @param 4 - p_bg: pointer to the background layer, also the result
+void CGPic::imgAppendLayerNew(const cv::Mat& up, int left, int top, cv::Mat* p_bg) {
+    cv::Mat bgPart(*p_bg, cv::Rect(left, top, up.cols, up.rows));
+
+    std::vector<cv::Mat> upChannels;
+    std::vector<cv::Mat> bgPartChannels;
+    split(up, upChannels);
+    split(bgPart, bgPartChannels);
+
+    for (int i = 0; i < 3; i++) {
+        // out_RGB <--- dst_RGB(1 - src_A)
+        bgPartChannels[i] = bgPartChannels[i].mul(255.0 - upChannels[3], 1 / 255.0);
+        // out_RGB <--- src_RGBsrc_A + dst_RGB(1 - src_A)
+        bgPartChannels[i] += upChannels[i].mul(upChannels[3], 1 / 255.0);
+    }
+
+    cv::merge(bgPartChannels, bgPart);
 }
 
 // set picture size
@@ -117,7 +145,10 @@ void CGPic::saveImage() {
     cv::cvtColor(layers_[layerNum - 1].img(), img, cv::COLOR_BGRA2BGR);
 
     for (int i = layerNum - 2; i >= 0; i--) {
-        imgAppendLayer(layers_[i].img(), &img);
+        // v3.1
+        //imgAppendLayer(layers_[i].img(), &img);
+        // v3.2
+        imgAppendLayerNew(layers_[i].img(), layers_[i].left(), layers_[i].top(), &img);
     }
 
     std::string outputPath = "CGOutput\\" + fileName_;
