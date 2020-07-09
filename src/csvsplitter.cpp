@@ -4,13 +4,14 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-24 19:43:38
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-08 23:37:16
+ * Last Modify  : 2020-07-09 09:48:45
  * Description  : functions to handle csv file
  * Revision     : v1.0 - process cglist.csv
  *                v3.0 - process cglist.csv & imagediffmap.csv,
  *                  merge images using OpenCV instead of generate
  *                  Magick Command-line scripts
  *                v3.1 - add prompt text for user
+ *                v3.2 - fix bug of commented line in cglist.csv
  * **************************************************************** */
 
 #include "csvsplitter.h"
@@ -307,6 +308,10 @@ CSVFileSplitter::CSVFileSplitter(const std::string &csvFileName) {
         // lines below ":" is SD pic
         if (lineBuff.at(0) == ':') {
             break;
+        }
+        // comment line, appear in Riddle Joker
+        else if (lineBuff.at(0) == '#') {
+            continue;
         }
         else {
             // before v3.0, store the info to generate Magick script
