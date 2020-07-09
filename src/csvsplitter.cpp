@@ -4,7 +4,7 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-24 19:43:38
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-09 09:48:45
+ * Last Modify  : 2020-07-09 22:02:28
  * Description  : functions to handle csv file
  * Revision     : v1.0 - process cglist.csv
  *                v3.0 - process cglist.csv & imagediffmap.csv,
@@ -29,7 +29,19 @@
 // open "imagediffmap.csv" and get the first line to lineBuff_
 CSVimagediffmapSplitter::CSVimagediffmapSplitter() {
     imagediffmap_.open("imagediffmap.csv", std::ios::in|std::ios::binary);
-    std::getline(imagediffmap_, lineBuff_);
+
+    while (std::getline(imagediffmap_, lineBuff_)) {
+        char tmpChar = lineBuff_.at(0);
+        if (tmpChar == '#') {
+            continue;
+        }
+        else if ((tmpChar == '\r') || (tmpChar == '\n')) {
+            continue;
+        }
+        else {
+            break;
+        }
+    }
 }
 
 CSVimagediffmapSplitter::~CSVimagediffmapSplitter() {
@@ -182,23 +194,32 @@ std::vector<CGPic> CSVFileSplitter::csvLineSplit(const std::string &csvLine) {
     std::string tmpLine = csvLine;
     size_t splitPosition;
 
-    std::string charaNo = tmpLine.substr(7, 1);
-
     // useless thumbnail info
     splitPosition = tmpLine.find(',');
     tmpLine = tmpLine.substr(splitPosition + 1);
 
     // cg series name displayed in game, used in output file name
-    splitPosition = tmpLine.find(',');
-    std::string cgName = tmpLine.substr(0, splitPosition);
+    std::string cgName;
+    if (nameInLine_) {
+        std::string charaNo = csvLine.substr(7, 1);
+        splitPosition = tmpLine.find(',');
+        cgName = charaNo + "_" + tmpLine.substr(0, splitPosition);
+        tmpLine = tmpLine.substr(splitPosition + 1);
+    }
+    else {
+        cgName = csvLine.substr(5, 5);
+    }
+
+    // remove '\t' before cgs if exist
+    if (tmpLine.at(0) == '\t') {
+        tmpLine = tmpLine.substr(1);
+    }
 
     // process the end of line to make it easier to split
-    splitPosition = tmpLine.find('\t');
-    tmpLine = tmpLine.substr(splitPosition + 1);
     removeEOLChar(&tmpLine);
     tmpLine = tmpLine + ",";
 
-    csvImageDiffmapSplitter.getNewGroup();
+    csvImageDiffmapSplitter_.getNewGroup();
 
     //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     // if the cg name is "ev418bc|*ev418_ab"
@@ -227,7 +248,7 @@ std::vector<CGPic> CSVFileSplitter::csvLineSplit(const std::string &csvLine) {
         size_t addPosition = tmpCGpicInfo.find("|*");
         if (addPosition != std::string::npos) {
             std::string addcgInfo = tmpCGpicInfo.substr(addPosition + 2);
-            csvImageDiffmapSplitter.findInfo(addcgInfo, &addSeriesName, &addBgLayer, &addUpLayer);
+            csvImageDiffmapSplitter_.findInfo(addcgInfo, &addSeriesName, &addBgLayer, &addUpLayer);
 
             // new add series, create a new layer index for the new series
             if (addSeriesName != (*currentAddSeries_).seriesName()) {
@@ -246,7 +267,7 @@ std::vector<CGPic> CSVFileSplitter::csvLineSplit(const std::string &csvLine) {
             tmpCGpicInfo = tmpCGpicInfo.substr(0, addPosition);
         }
 
-        csvImageDiffmapSplitter.findInfo(tmpCGpicInfo, &mainSeriesName, &mainBgLayer, &mainUpLayer);
+        csvImageDiffmapSplitter_.findInfo(tmpCGpicInfo, &mainSeriesName, &mainBgLayer, &mainUpLayer);
 
         // new main series, create a new layer index for the new series
         if (mainSeriesName != (*currentMainSeries_).seriesName()) {
@@ -265,7 +286,7 @@ std::vector<CGPic> CSVFileSplitter::csvLineSplit(const std::string &csvLine) {
         tmpCGPic.setSize((*currentMainSeries_).imageWidth(), (*currentMainSeries_).imageHeight());
         char cgNumChar[3];
         sprintf(cgNumChar, "%03d", cgPicNum);
-        std::string tmpCGFileName = charaNo + "_" + cgName + "_" + cgNumChar + ".png";
+        std::string tmpCGFileName = cgName + "_" + cgNumChar + ".png";
         tmpCGPic.setFileName(tmpCGFileName);
         cgPics.push_back(tmpCGPic);
 
@@ -297,21 +318,36 @@ CSVFileSplitter::CSVFileSplitter(const std::string &csvFileName) {
     std::string lineBuff;
     csvFile.open(csvFileName_, std::ios::in|std::ios::binary);
 
+    // line 1: always "#CGモード一覧\r\n" (ANSI)
     std::getline(csvFile, lineBuff);
+    // line 2: title line
     std::getline(csvFile, lineBuff);
+    titleLineSplit(lineBuff);
 
     // initial create dummy index name
     currentMainSeries_ = new CGLayerIndex;
     currentAddSeries_ = new CGLayerIndex;
 
     while (std::getline(csvFile, lineBuff)) {
-        // lines below ":" is SD pic
-        if (lineBuff.at(0) == ':') {
-            break;
+        char tmpChar = lineBuff.at(0);
+        // ":" divisse between character or between cg and sd
+        if (tmpChar == ':') {
+            continue;
         }
         // comment line, appear in Riddle Joker
-        else if (lineBuff.at(0) == '#') {
+        if (tmpChar == '#') {
             continue;
+        }
+        // blank line
+        if ((tmpChar == '\r') || (tmpChar == '\n')) {
+            continue;
+        }
+
+        // cg line start with "thum_evxxx,..." or "thum_EVxxx,..."
+        // sd line start with "thum_sdxxx,..." or "thum_SDxxx,..."
+        tmpChar = lineBuff.at(5);
+        if ((tmpChar == 's') || (tmpChar == 'S')) {
+            break;
         }
         else {
             // before v3.0, store the info to generate Magick script
@@ -404,3 +440,28 @@ void CSVFileSplitter::writeBatFile() {
     outFile << "del %0\r\n";
 }
 */
+
+// split the title line for number of item before cg info
+// set the variables (itemBeforeCG_, nameInLine_)
+// @param 1 - titleLine: title line in cglist.csv (ANSI)
+// example: "#サムネール, 画像1, 画像2, 画像3, ...\r\n" --> (1, false)
+//          "#サムネール,CG名称,\t画像1, 画像2, 画像3, ...\r\n" --> (2, true)
+void CSVFileSplitter::titleLineSplit(const std::string &titleLine) {
+    size_t splitPosition;
+    splitPosition = titleLine.find('1');
+    std::string tmpLine = titleLine.substr(0, splitPosition - 4);
+
+    itemBeforeCg_ = 0;
+    size_t findStart = 0;
+    while ((findStart = tmpLine.find(',', findStart + 1)) != std::string::npos) {
+        itemBeforeCg_++;
+    }
+
+    if (itemBeforeCg_ > 1) {
+        nameInLine_ = true;
+    }
+    else {
+        nameInLine_ = false;
+    }
+    
+}
