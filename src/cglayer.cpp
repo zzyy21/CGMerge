@@ -4,7 +4,7 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-22 22:32:07
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-09 00:43:46
+ * Last Modify  : 2020-07-10 19:29:06
  * Description  : layer information
  * Revision     : v1.0 - first release
  *                v2.0 - Add function to call tlg2png to deal with
@@ -14,6 +14,7 @@
  *                v3.0 - add fuctions using OpenCV, read image
  *                  files and pad to target size.
  *                v3.2 - modify to optimize appending layer
+ *                v3.3 - add support for negative left/top
  * **************************************************************** */
 
 #include "cglayer.h"
@@ -122,6 +123,29 @@ void CGLayer::readImg() {
     int padRight = width_ - img_.cols - left_;
     cv::copyMakeBorder(img_, img_, padTop, padBottom, padLeft, padRight, cv::BORDER_CONSTANT, padPixel);
     */
+
+    // negative left or top
+    // appear in amairo isle, ev414a
+    if ((left_ < 0) && (top_ < 0)) {
+        cv::Mat partImg_(img_, cv::Rect(-left_, -top_, img_.cols + left_, img_.rows + top_));
+        cv::Mat tmpMat = partImg_.clone();
+        img_ = tmpMat;
+        left_ = 0;
+        top_ = 0;
+    }
+    else if ((left_ < 0) && (top_ >= 0)) {
+        cv::Mat partImg_(img_, cv::Rect(-left_, 0, img_.cols + left_, img_.rows));
+        cv::Mat tmpMat = partImg_.clone();
+        img_ = tmpMat;
+        left_ = 0;
+    }
+    else if ((left_ >= 0) && (top_ < 0)) {
+        cv::Mat partImg_(img_, cv::Rect(0, -top_, img_.cols, img_.rows + top_));
+        cv::Mat tmpMat = partImg_.clone();
+        img_ = tmpMat;
+        top_ = 0;
+    }
+
 }
 
 // return the readed image in cv::Mat format

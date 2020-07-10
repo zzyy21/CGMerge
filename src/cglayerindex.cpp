@@ -4,13 +4,14 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-23 20:26:07
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-09 00:41:35
+ * Last Modify  : 2020-07-10 19:30:35
  * Description  : layer index operation
  * Revision     : v1.0 - Get layer info from txt file by expimg
  *                v2.0 - Get layer info from json file by KrkrExtract
  *                v3.0 - Modify function call to fit the change of
  *                  using OpenCV
  *                v3.2 - modify to optimize appending layer
+ *                v3.3 - use new layer identify rule
  * **************************************************************** */
 
 #include "cglayerindex.h"
@@ -33,6 +34,8 @@ int CGLayerIndex::getValue(const std::string &line) {
 }
 */
 
+// No longer use after v3.3, use getLayerId istead
+/*
 // get pictrue background and upper layer identifier from input line
 // @param 1 - line: input line with format:"name   :<Aa>"
 // @param 2 - p_bgLayer: pointer to store background identifier
@@ -55,6 +58,61 @@ void CGLayerIndex::getPicId(const std::string &line, int* p_bgLayer, int* p_upLa
     }
     else if ((tmpChar >= 'a') && (tmpChar <= 'z')) {
         *p_upLayer = tmpChar - 'a';
+    }
+}
+*/
+
+// turn all upper case char to lower case in input string
+// @param 1 - inString: pointer to string to be handle
+void CGLayerIndex::stringToLowercase(std::string *inString) {
+    for (size_t i = 0; i < (*inString).size(); i++) {
+        char tmpChar = (*inString).at(i);
+        if ((tmpChar >= 'A') && (tmpChar <= 'Z')) {
+            (*inString)[i] = tmpChar - 'A' + 'a';
+        }
+    }
+}
+
+// get v3.3 layer identifier from input layer name
+// @param 1 - layerName: input string layer name (lower case only)
+// @param 2 - p_bgLayer: pointer to store background identifier
+// @param 3 - p_upLayer: pointer to upper layer identifier
+void CGLayerIndex::getLayerId(const std::string &layerName, int* p_bgLayer, int* p_upLayer) {
+    //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //  simple two char:            "<Aa>"
+    //      getLayerNum(<AA>),      (0, 0)
+    //  single char layer:          "<A>"
+    //  appear in cafe stella
+    //      getLayerNum(a<A>),      (0, 0)      (bg is always 0))
+    //  three char start with M:    "M<AA>"
+    //  appear in sanoba witch
+    //      getLayerNum(<AA>),      (0, 0)
+    //      "M",                    bg += 26
+    //                              (26, 0)
+    //  string end with " \u306e\u30b3\u30d4\u30fc": 
+    //                              "<AA> \u306e\u30b3\u30d4\u30fc"
+    //  appear in amairo isle
+    //      getLayerNum(<AA>),      (0, 0)
+    //      " のコピー",             bg += 26
+    //                              (26, 0)
+    //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    int length = layerName.size();
+    if (length == 2) {
+        *p_bgLayer = layerName.at(0) - 'a';
+        *p_upLayer = layerName.at(1) - 'a';
+    }
+    else if (length == 1) {
+        *p_bgLayer = 0;
+        *p_upLayer = layerName.at(0) - 'a';
+    }
+    else if (length == 3) {
+        *p_bgLayer = layerName.at(1) - 'a' + 26;
+        *p_upLayer = layerName.at(2) - 'a';
+    }
+    else if (length == 15) {
+        *p_bgLayer = layerName.at(0) - 'a' + 26;
+        *p_upLayer = layerName.at(1) - 'a';
     }
 }
 
@@ -148,7 +206,8 @@ int CGLayerIndex::getInfoJson() {
     int top;
     for (int layerNum = 0; layerNum < totalLayers; layerNum++) {
         layerName = jsonLayerIndex["layers"][layerNum]["name"];
-        getPicId(layerName, &bgLayer, &upLayer);
+        stringToLowercase(&layerName);
+        getLayerId(layerName, &bgLayer, &upLayer);
 
         layerid = jsonLayerIndex["layers"][layerNum]["layer_id"];
 
@@ -161,6 +220,16 @@ int CGLayerIndex::getInfoJson() {
         layers_.push_back(cglayer);
         layerIndex_[bgLayer * 26 + upLayer] = layerNum;
         availableIndex_.push_back(bgLayer * 26 + upLayer);
+    }
+
+    // if no layer "aa", set the last layer as "aa"
+    // appear in amairo isle, patch.xp3 ev214n
+    if (layerIndex_[0] == -1) {
+        CGLayer cglayer(seriesName_, layerid, left, top);
+        layers_.push_back(cglayer);
+        layerIndex_[0] = totalLayers;
+        availableIndex_.push_back(0);
+        totalLayers++;
     }
 
     jsonFile.close();
@@ -179,7 +248,7 @@ CGLayerIndex::CGLayerIndex() {
 // and read json file to get layer information
 // @param 1 - seriesName: series name of this index
 CGLayerIndex::CGLayerIndex(const std::string &seriesName) {
-    for (int i = 0; i < 26 * 26; i++) {
+    for (int i = 0; i < 2 * 26 * 26; i++) {
         layerIndex_[i] = -1;
     }
 
@@ -211,6 +280,8 @@ int CGLayerIndex::imageHeight() {
     return imageHeight_;
 };
 
+// No longer use after v3.3 due to the new layer id
+/*
 // return CGLayer by background and upper layer identifier
 // @param 1 - bgLayer: background identifier
 // @param 2 - upLayer: upper layer identifier
@@ -225,3 +296,12 @@ CGLayer CGLayerIndex::findLayer(int availableIndexNo) {
     // TODO: if layer exist?
     return layers_[layerIndex_[availableIndex_[availableIndexNo] ] ];
 }
+*/
+
+// return CGLayer by background and upper layer identifier
+// @param 1 - layerId: layer to get.
+CGLayer CGLayerIndex::findLayer(int layerId) {
+    // TODO: if layer exist?
+    return layers_[layerIndex_[layerId] ];
+}
+
