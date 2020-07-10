@@ -4,7 +4,7 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-24 15:06:55
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-09 00:44:08
+ * Last Modify  : 2020-07-10 22:56:30
  * Description  : operation to single cg picture
  * Revision     : v1.0 - first version for generate Magick convert
  *                  command-lines
@@ -13,6 +13,7 @@
  *                v3.0 - add fuctions using OpenCV, merge image
  *                  layers and save image file.
  *                v3.2 - modify to optimize appending layer
+ *                v3.3 - add public func return cg file name
  * **************************************************************** */
 
 #include "cglayer.h"
@@ -91,6 +92,11 @@ void CGPic::addLayer(const CGLayer &layer) {
 // @param 1 - fileName: name to be set
 void CGPic::setFileName(const std::string &fileName) {
     fileName_ = fileName;
+}
+
+// return file name of this pic
+std::string CGPic::fileName() {
+    return fileName_;
 }
 
 // No longer used after v3.0 due to the use of OpenCV

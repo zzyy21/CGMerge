@@ -4,7 +4,7 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-22 22:32:07
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-10 19:29:06
+ * Last Modify  : 2020-07-11 00:31:41
  * Description  : layer information
  * Revision     : v1.0 - first release
  *                v2.0 - Add function to call tlg2png to deal with
@@ -15,6 +15,7 @@
  *                  files and pad to target size.
  *                v3.2 - modify to optimize appending layer
  *                v3.3 - add support for negative left/top
+ *                  handle out of range situation
  * **************************************************************** */
 
 #include "cglayer.h"
@@ -26,8 +27,6 @@
 #include "tlg2png/Image.h"
 #include "tlg2png/TlgConverter.h"
 
-// No longer used after v3.2
-/*
 // CGLayer constructor, get layer infomation from parameters.
 // set info variables and call tlg2png to extract png image
 // get the image into Mat
@@ -56,17 +55,16 @@ CGLayer::CGLayer(const std::string &seriesName, int layerid, int width,
 
     readImg();
 }
-*/
 
+// No longer used after v3.3
+/*
 // CGLayer constructor, get layer infomation from parameters.
 // set info variables and call tlg2png to extract png image
 // get the image into Mat
 // @param 1 - seriesName: layer series name
 // @param 2 - layerid: layer id, to find tlg file
-// @param 3 - width: target width of the layer
-// @param 4 - height: target height of the layer
-// @param 5 - left: column position when append layer on background
-// @param 6 - top: row position when append layer on background
+// @param 3 - left: column position when append layer on background
+// @param 4 - top: row position when append layer on background
 CGLayer::CGLayer(const std::string &seriesName, int layerid, int left, int top) {
     seriesName_ = seriesName;
     layerid_ = layerid;
@@ -83,6 +81,7 @@ CGLayer::CGLayer(const std::string &seriesName, int layerid, int left, int top) 
 
     readImg();
 }
+*/
 
 CGLayer::~CGLayer() {
 }
@@ -144,6 +143,26 @@ void CGLayer::readImg() {
         cv::Mat tmpMat = partImg_.clone();
         img_ = tmpMat;
         top_ = 0;
+    }
+
+    // out of range
+    // appear in sabbat of witch ev316ea
+    int right = left_ + img_.cols;
+    int down = top_ + img_.rows;
+    if ((right > width_) && (down > height_)) {
+        cv::Mat partImg_(img_, cv::Rect(0, 0, width_ - left_, height_ - top_));
+        cv::Mat tmpMat = partImg_.clone();
+        img_ = tmpMat;
+    }
+    else if ((right > width_) && (down <= height_)) {
+        cv::Mat partImg_(img_, cv::Rect(0, 0, width_ - left_, img_.rows));
+        cv::Mat tmpMat = partImg_.clone();
+        img_ = tmpMat;
+    }
+    else if ((right <= width_) && (down > height_)) {
+        cv::Mat partImg_(img_, cv::Rect(0, 0, img_.cols, height_ - top_));
+        cv::Mat tmpMat = partImg_.clone();
+        img_ = tmpMat;
     }
 
 }

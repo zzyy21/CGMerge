@@ -4,7 +4,7 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-23 20:26:07
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-10 19:30:35
+ * Last Modify  : 2020-07-11 01:28:23
  * Description  : layer index operation
  * Revision     : v1.0 - Get layer info from txt file by expimg
  *                v2.0 - Get layer info from json file by KrkrExtract
@@ -12,6 +12,7 @@
  *                  using OpenCV
  *                v3.2 - modify to optimize appending layer
  *                v3.3 - use new layer identify rule
+ *                       add default layer for "diff" rule
  * **************************************************************** */
 
 #include "cglayerindex.h"
@@ -214,23 +215,32 @@ int CGLayerIndex::getInfoJson() {
         left = jsonLayerIndex["layers"][layerNum]["left"];
         top = jsonLayerIndex["layers"][layerNum]["top"];
 
-        // No longer used after v3.2
-        //CGLayer cglayer(seriesName_, layerid, imageWidth_, imageHeight_, left, top);
-        CGLayer cglayer(seriesName_, layerid, left, top);
+        CGLayer cglayer(seriesName_, layerid, imageWidth_, imageHeight_, left, top);
+        //CGLayer cglayer(seriesName_, layerid, left, top);
         layers_.push_back(cglayer);
         layerIndex_[bgLayer * 26 + upLayer] = layerNum;
         availableIndex_.push_back(bgLayer * 26 + upLayer);
     }
 
+    // **replaced by default layer
     // if no layer "aa", set the last layer as "aa"
     // appear in amairo isle, patch.xp3 ev214n
-    if (layerIndex_[0] == -1) {
-        CGLayer cglayer(seriesName_, layerid, left, top);
-        layers_.push_back(cglayer);
-        layerIndex_[0] = totalLayers;
-        availableIndex_.push_back(0);
-        totalLayers++;
-    }
+    //if (layerIndex_[0] == -1) {
+    //    CGLayer cglayer(seriesName_, layerid, left, top);
+    //    layers_.push_back(cglayer);
+    //    layerIndex_[0] = totalLayers;
+    //    availableIndex_.push_back(0);
+    //    totalLayers++;
+    //}
+
+    // set last layer as default background layer for "diff" rule
+    //CGLayer cglayer(seriesName_, layerid, imageWidth_, imageHeight_, left, top);
+    //layers_.push_back(cglayer);
+    //layerIndex_[2 * 26 * 26] = totalLayers;
+    //availableIndex_.push_back(2 * 26 * 26);
+    //totalLayers++;
+
+    defaultBGLayer_ = bgLayer * 26 + upLayer;
 
     jsonFile.close();
 
@@ -305,3 +315,7 @@ CGLayer CGLayerIndex::findLayer(int layerId) {
     return layers_[layerIndex_[layerId] ];
 }
 
+// return the layerId of default background for diff rule
+int CGLayerIndex::defaultBGLayer() {
+    return defaultBGLayer_;
+}

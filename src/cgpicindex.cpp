@@ -4,7 +4,7 @@
  * Author       : zzyy21
  * Create Time  : 2020-07-10 19:31:33
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-10 19:43:42
+ * Last Modify  : 2020-07-10 23:51:53
  * Description  : functions to handle imagediffmap.csv file
  *                build a index for cgpic.
  * Revision     : v3.3 - new file for class CSVimagediffmapSplitter
@@ -198,33 +198,28 @@ void CSVimagediffmapSplitter::lineSplitt(const std::string &line) {
         int bgLayerId;
         int upLayerId;
         layerIdcode(tmpLine, &bgLayerId, &upLayerId);
-        bgLayerIndexs_[seriesId][bgLayer * 26 + upLayer] = 0;
+        bgLayerIndexs_[seriesId][bgLayer * 26 + upLayer] = 2 * 26 * 26;
         upLayerId += bgLayerId * 26;
-        if (upLayerId) {
-            upLayerIndexs_[seriesId][bgLayer * 26 + upLayer] = upLayerId;
-        }
-        else {
-            upLayerIndexs_[seriesId][bgLayer * 26 + upLayer] = -1;
-        }
-        
+        upLayerIndexs_[seriesId][bgLayer * 26 + upLayer] = upLayerId;
     }
     else if (mergeTypeStr == "seton") {
         tmpLine = tmpLine.substr(splitPosition + 1);
         removeEOLChar(&tmpLine);
-        splitPosition = tmpLine.find(':');
-        if (splitPosition != std::string::npos) {
-            tmpLine = tmpLine.substr(0, splitPosition);
-        }
         int bgLayerId;
         int upLayerId;
-        layerIdcode(tmpLine, &bgLayerId, &upLayerId);
-        bgLayerIndexs_[seriesId][bgLayer * 26 + upLayer] = bgLayerId * 26;
-        if (upLayerId) {
+        splitPosition = tmpLine.find(':');
+        if (splitPosition != std::string::npos) {
+            std::string upLayerName = tmpLine.substr(0, splitPosition);
+            layerIdcode(upLayerName, &bgLayerId, &upLayerId);
             upLayerIndexs_[seriesId][bgLayer * 26 + upLayer] = bgLayerId * 26 + upLayerId;
+            tmpLine = tmpLine.substr(splitPosition + 1);
         }
         else {
             upLayerIndexs_[seriesId][bgLayer * 26 + upLayer] = -1;
         }
+
+        layerIdcode(tmpLine, &bgLayerId, &upLayerId);
+        bgLayerIndexs_[seriesId][bgLayer * 26 + upLayer] = bgLayerId * 26 + upLayerId;
     }
 }
 

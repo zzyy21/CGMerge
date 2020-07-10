@@ -4,7 +4,7 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-22 22:32:10
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-09 00:43:56
+ * Last Modify  : 2020-07-11 00:31:55
  * Description  : class for layer information
  * Revision     : v1.0 - first release
  *                v2.0 - Add function to call tlg2png to deal with
@@ -14,6 +14,8 @@
  *                v3.0 - add fuctions using OpenCV, read image
  *                  files and pad to target size.
  *                v3.2 - modify to optimize appending layer
+ *                v3.3 - add support for negative left/top
+ *                  handle out of range situation
  * **************************************************************** */
 
 #ifndef CGLAYER_H_
@@ -26,9 +28,8 @@ class CGLayer {
     private:
         std::string seriesName_;
         int layerid_;
-        // **No longer used after v3.2
-        //int width_;
-        //int height_;
+        int width_;
+        int height_;
         int left_;
         int top_;
         std::string fileName_;
@@ -40,10 +41,10 @@ class CGLayer {
         void readImg();
 
     public:
-        // **No longer used after v3.2
-        //CGLayer(const std::string &seriesName, int layerid, int width,
-        //        int height, int left, int top);
-        CGLayer(const std::string &seriesName, int layerid, int left, int top);
+        CGLayer(const std::string &seriesName, int layerid, int width,
+                int height, int left, int top);
+        // **No longer used after v3.3
+        //CGLayer(const std::string &seriesName, int layerid, int left, int top);
         ~CGLayer();
 
         int left();

@@ -4,7 +4,7 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-24 19:43:38
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-10 19:41:16
+ * Last Modify  : 2020-07-11 01:34:52
  * Description  : functions to handle cglist.csv file
  * Revision     : v1.0 - process cglist.csv
  *                v3.0 - process cglist.csv & imagediffmap.csv,
@@ -16,6 +16,8 @@
  *                  imagediffmap.csv file handling to new file
  *                  cgpicindex.cpp.
  *                  use new layer identify rule
+ *                  fixed bug caused by line end with extra
+ *                  ",EV105A,diff,BC",etc. in sabbat of witch
  * **************************************************************** */
 
 #include "csvsplitter.h"
@@ -84,6 +86,14 @@ std::vector<CGPic> CSVFileSplitter::csvLineSplit(const std::string &csvLine) {
     int cgPicNum = 0;
 
     while ((splitPosition = tmpLine.find(',')) != std::string::npos) {
+        // line end with ",EV105A,diff,BC",etc. which should
+        // not exist. should be in imagediffmap.csv.
+        // appear in sabbat of witch
+        if (splitPosition < 7) {
+            tmpLine = tmpLine.substr(splitPosition + 1);
+            continue;
+        }
+
         cgPicNum++;
         CGPic tmpCGPic;
         std::string tmpCGpicInfo = tmpLine.substr(0, splitPosition);
@@ -100,6 +110,10 @@ std::vector<CGPic> CSVFileSplitter::csvLineSplit(const std::string &csvLine) {
                 currentAddSeries_ = new CGLayerIndex(addSeriesName);
             }
 
+            if (addBgLayer == 2 * 26 * 26) {
+                addBgLayer = (*currentAddSeries_).defaultBGLayer();
+            }
+
             // before v3.2
             //// addUpLayer != 0 -> append add series upper layer
             //if (addUpLayer != -1) {
@@ -109,8 +123,9 @@ std::vector<CGPic> CSVFileSplitter::csvLineSplit(const std::string &csvLine) {
             //tmpCGPic.addLayer((*currentAddSeries_).findLayer(addBgLayer, 0));
 
             // after v3.3
-            // addUpLayer != -1 -> append add series upper layer
-            if (addUpLayer != -1) {
+            // addUpLayer != -1 -> up layer exist
+            // addUpLayer != addBgLayer -> up layer isn't default bg
+            if ((addUpLayer != -1) && (addUpLayer != addBgLayer)) {
                 tmpCGPic.addLayer((*currentAddSeries_).findLayer(addUpLayer));
             }
             // append add series background layer
@@ -128,6 +143,10 @@ std::vector<CGPic> CSVFileSplitter::csvLineSplit(const std::string &csvLine) {
             currentMainSeries_ = new CGLayerIndex(mainSeriesName);
         }
 
+        if (mainBgLayer == 2 * 26 * 26) {
+            mainBgLayer = (*currentMainSeries_).defaultBGLayer();
+        }
+
         // before v3.2
         //// mainUpLayer != 0 -> append main series upper layer
         //if (mainUpLayer) {
@@ -137,8 +156,9 @@ std::vector<CGPic> CSVFileSplitter::csvLineSplit(const std::string &csvLine) {
         //tmpCGPic.addLayer((*currentMainSeries_).findLayer(mainBgLayer, 0));
 
         // after v3.3
-        // mainUpLayer != 0 -> append main series upper layer
-        if (mainUpLayer != -1) {
+        // mainUpLayer != -1 -> up layer exist
+        // mainUpLayer != mainBgLayer -> up layer isn't default bg
+        if ((mainUpLayer != -1) && (mainUpLayer != mainBgLayer)) {
             tmpCGPic.addLayer((*currentMainSeries_).findLayer(mainUpLayer));
         }
         // append main series background layer
@@ -236,7 +256,7 @@ CSVFileSplitter::CSVFileSplitter(const std::string &csvFileName) {
             totalPicNum_ += cgNum;
             printf("\xB5\xDA %i \xD7\xE9\xA3\xAC\xB9\xB2 %i \xD5\xC5\xA3\xBA\r\n", csvCGPicSeriesNum_, cgNum);
             for (int i = 0; i < cgNum; i++) {
-                printf("\xD5\xFD\xD4\xDA\xBA\xCF\xB3\xC9\xB5\xDA %i \xD5\xC5\xA1\xAD\r\n", i + 1);
+                printf("\xD5\xFD\xD4\xDA\xBA\xCF\xB3\xC9 %s ...\r\n", cgGroup[i].fileName().c_str());
                 cgGroup[i].saveImage();
             }
         }
