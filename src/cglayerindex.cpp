@@ -4,7 +4,7 @@
  * Author       : zzyy21
  * Create Time  : 2020-06-23 20:26:07
  * Modifed by   : zzyy21
- * Last Modify  : 2020-07-11 01:28:23
+ * Last Modify  : 2020-07-11 11:01:26
  * Description  : layer index operation
  * Revision     : v1.0 - Get layer info from txt file by expimg
  *                v2.0 - Get layer info from json file by KrkrExtract
@@ -71,6 +71,18 @@ void CGLayerIndex::stringToLowercase(std::string *inString) {
         if ((tmpChar >= 'A') && (tmpChar <= 'Z')) {
             (*inString)[i] = tmpChar - 'A' + 'a';
         }
+    }
+}
+
+// remove all ' ' at the end of input string
+// @param 1 - inString: pointer to string to be handle
+void CGLayerIndex::removeLineEndSpace(std::string *inString) {
+    int size = (*inString).size();
+    char endChar = (*inString).at(size - 1);
+    while (endChar == ' ') {
+        (*inString).erase(size - 1, 1);
+        size--;
+        endChar = (*inString).at(size - 1);
     }
 }
 
@@ -207,6 +219,9 @@ int CGLayerIndex::getInfoJson() {
     int top;
     for (int layerNum = 0; layerNum < totalLayers; layerNum++) {
         layerName = jsonLayerIndex["layers"][layerNum]["name"];
+        // fixed name end with extra space
+        // appear in dracu-riot ev117a "EH "
+        removeLineEndSpace(&layerName);
         stringToLowercase(&layerName);
         getLayerId(layerName, &bgLayer, &upLayer);
 
